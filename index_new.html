@@ -1,0 +1,124 @@
+<!-- grundsätzlich: 
+ man kann sich immer alles super anschauen mit "Untersuchen" - wenn man Elemente ausgewählt hat steht unten nach dem Code Stile - da findet man auch viel
+ ändern kann mans dann aber immer nur im file selbst
+ man braucht ein "Go Live - rechts unten - um das alles hier sehen zu können-->
+<!-- Step 1: basic stuff -->
+<!-- sagt dem browser, dass es ein html-doc ist -->
+<!doctype html>
+
+<!-- startet html-doc -->
+<html>
+
+  <!-- Meta-Infos zu dem doc und style-sheets (css) 
+   hier spielt sich alles im head-element ab - fast nichts im body!-->
+  <head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SVG with D3</title>
+
+    <!-- style wist das opening-tag für css-code -->
+    <style> 
+    .hovered {
+      fill: #0d970d; /* Change fill color on hover */
+      stroke: #da1717; /* Add a stroke on hover */
+      stroke-width: 3px; /* Stroke width on hover */
+      }</style>
+
+    <!-- externe stylesheets sind da verlinkt - die hab ich im selben ordner -->
+    <link rel="stylesheet" href="base.css">
+    <link rel="stylesheet" href="custom.css">
+
+    <!-- Step 2: das d3-script -->
+     <!-- wir laden die d3-library -->
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+     
+    <!-- script ist das openeing-tag für javascript -->
+    <script>
+
+      // Step 3: wir laden die Daten mit d3.csv()
+      d3.csv("sports_fin.csv")
+        // dann bitte die function durchführen, wenn die Daten geladen sind 
+        .then(function(data) {
+        // wir sagaen, das wir in der Konsole ("Untersuchen") nachschauen wollen, ob die Daten geladen wurden.
+        console.log(data)
+
+     // Step 4: wir bauen einen SVG-Container in #my-svg-chart
+     const myChart = d3
+          // ich nehme my-svg-chart (div-element, das ich im body definiert habe)
+        .select('#my-svg-chart')
+        // ich adde ein svg-element
+        .append('svg')
+        // lege Höhe und Breite fest (sinnvoll, dass das gleich ist wie im css-stylesheet, damit Headline etc übereinander stehen.)
+        .attr('width', 640)
+        .attr('height', 640)
+
+     // Step 5: wir bauen die Grafik in den Container 
+     const individualCharts = myChart
+        // wir wählen eine Kreise aus, die ich in dem Container haben will 
+        .selectAll('circle')
+        //wir legen die Daten aus meinem File da rein 
+        .data(data)
+        //.enter() .append("rect") - alte Variante, oder .join (siehe unten)
+        .join('circle');
+
+    // Step 6: wir designen die circles 
+    // Größe der Kreise und Abstand dazwischen
+    const gridSize = 35, gap = 15; 
+    //ich definiere einen Radius (in diesem Fall zwei - wenn ich alle Kreise unterschiedlih groß will, kann ich das weiter unten auch machen - siehe "Unterschiedliche Größe - dann brauch ich das nicht")
+    const fixedRadius = 15; // Fixed radius for most circles
+    const smallRadius = 12; // Smaller radius for grey circles
+
+      // spezielle Angaben für Kreise (für Rechtecke im File index_filled)  
+      individualCharts
+          // x- und y-Koordinaten für jeden Kreis (14 Kreise pro Zeile und gridSize/2 - damit ich am Anfang nicht nur Halbkreise habe)
+          .attr('cx', function(d,i){
+              return Math.floor(i%14)*(gridSize+ gap) +gridSize/2;
+          })
+          .attr('cy', function(d,i){
+              return Math.floor(i/14)*(gridSize+ gap)  +gridSize/2;
+          })
+          // Radius - zwei verschiedene Arten 
+          .attr('r', function(d) {
+              return (d.Sports == '5') ? smallRadius : fixedRadius;
+            })
+
+          // oder Radius, wenn einheitliche Größe
+          // .attr('r', fixedRadius) // Set a fixed radius
+
+          // oder Radius, wennn Unterschiedliche Größe
+          // .attr("r", function(d){
+          //   return(+d.Sports/6)*gridSize;
+          // })
+
+          //hover-effect
+          // wenn ich drüberfahre mit der Mouse, soll sich der Kreis einfärben 
+          .on("mouseover", function(d, i) { 
+            d3.select(this).classed("hovered", true);
+          })
+
+          // Remove the class on mouseout
+          .on("mouseout", function(d, i) { 
+            d3.select(this).classed("hovered", false); 
+          })
+        // Step 7: Wir nutzen die unterschiedlichen Werte im Chart um alles entsprechend einzufärben
+        individualCharts
+        .style('fill', function(d) {
+        if (d.Sports == '1') {return "#176420"}
+        if (d.Sports == '2') {return "#239a31"}
+        if (d.Sports == '3') {return "#6cca77"}
+        if (d.Sports == '4') {return "#90d398"}
+        if (d.Sports == '5') {return "grey"}
+        });
+  })
+  </script>
+    
+</head>
+
+  <body>
+  <h1>My sports diary</h1>
+  <p>I tagged everytime, when I was running, swimming, exercising or doing other sports since 1/1/24.</p>
+  <div id="my-svg-chart"></div>
+
+  </body>
+</html>
